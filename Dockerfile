@@ -8,8 +8,8 @@ FROM bluenviron/mediamtx:latest-ffmpeg
 # API: 9997 (TCP) - for monitoring
 EXPOSE 8554 8888 8890/udp 9997
 
-# Copy custom configuration
-COPY mediamtx.yml /mediamtx.yml
+# Use default MediaMTX config - custom config causing crashes
+# COPY mediamtx.yml /mediamtx.yml
 
-# Run MediaMTX
+# Run MediaMTX with default settings
 CMD ["/mediamtx"]
