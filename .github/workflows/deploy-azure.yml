@@ -46,12 +46,17 @@ jobs:
     
     - name: Deploy to Azure Container Instances
       run: |
+        ACR_PASSWORD=$(az acr credential show \
+          --name ${{ env.ACR_NAME }} \
+          --query "passwords[0].value" -o tsv)
+        
         az container create \
           --resource-group ${{ env.RESOURCE_GROUP }} \
           --name ${{ env.CONTAINER_NAME }} \
           --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest \
-          --acr-identity [system] \
-          --assign-identity \
+          --registry-login-server ${{ env.ACR_NAME }}.azurecr.io \
+          --registry-username ${{ env.ACR_NAME }} \
+          --registry-password $ACR_PASSWORD \
           --dns-name-label ${{ env.DNS_LABEL }} \
           --ports 8554 1935 8888 8889 8890 9997 \
           --protocol TCP \
