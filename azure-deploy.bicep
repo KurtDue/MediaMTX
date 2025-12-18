@@ -40,7 +40,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
             }
             {
               port: 8890
-              protocol: 'TCP'
+              protocol: 'UDP'
             }
             {
               port: 9997
@@ -94,7 +94,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
         }
         {
           port: 8890
-          protocol: 'TCP'
+          protocol: 'UDP'
         }
         {
           port: 9997
