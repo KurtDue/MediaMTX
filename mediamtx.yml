@@ -1,15 +1,22 @@
 # Minimal MediaMTX Configuration
 # Listen for SRT, output RTSP and HLS
 
-# Logging
 logLevel: info
+logDestinations: [stdout]
 
-# Protocols
+# API for monitoring
+api: yes
+apiAddress: :9997
+
+# Protocols - SRT input, RTSP and HLS output
 rtsp: yes
 rtspAddress: :8554
+protocols: [tcp]
 
 hls: yes
 hlsAddress: :8888
+hlsVariant: mpegts
+hlsSegmentDuration: 1s
 
 srt: yes
 srtAddress: :8890
@@ -20,4 +27,4 @@ webrtc: no
 
 # Accept any stream path
 paths:
-  all:
+  all_others:
