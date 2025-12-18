@@ -1,20 +1,13 @@
-# Docker Compose for local testing
 version: '3.8'
 
 services:
   mediamtx:
     image: bluenviron/mediamtx:latest
-    container_name: mediamtx-local
-    ports:
-      - "8554:8554"   # RTSP
-      - "1935:1935"   # RTMP
-      - "8888:8888"   # HLS
-      - "8889:8889"   # WebRTC
-      - "9997:9997"   # API
-      - "8000:8000/udp" # RTP
-      - "8001:8001/udp" # RTCP
+    container_name: mediamtx
     volumes:
-      - ./mediamtx.yml:/mediamtx.yml
-    restart: unless-stopped
-    environment:
-      - MTX_LOGLEVEL=info
+      - ./mediamtx.yml:/mediamtx.yml:ro   # Mount your custom config (read-only)
+    ports:
+      - "554:554"        # RTSP (TCP)
+      - "8554:8554"      # Alternative RTSP (TCP)
+      - "8890:8890/udp"  # SRT listener (UDP)
+    restart: onfailure
