@@ -2,13 +2,11 @@
 FROM bluenviron/mediamtx:latest-ffmpeg
 
 # Expose necessary ports
-# RTSP: 8554
-# RTMP: 1935
-# HLS: 8888
-# WebRTC: 8889
-# SRT: 8890
-# API: 9997
-EXPOSE 8554 1935 8888 8889 8890 9997 8000/udp 8001/udp
+# RTSP: 8554 (TCP)
+# HLS: 8888 (TCP) - for website playback
+# SRT: 8890 (UDP) - for incoming stream
+# API: 9997 (TCP) - for monitoring
+EXPOSE 8554 8888 8890/udp 9997
 
 # Copy custom configuration
 COPY mediamtx.yml /mediamtx.yml
