@@ -1,5 +1,5 @@
-# MediaMTX Server for Azure Deployment
-FROM bluenviron/mediamtx:latest
+# MediaMTX Server for Azure Deployment with FFmpeg support
+FROM bluenviron/mediamtx:latest-ffmpeg
 
 # Expose necessary ports
 # RTSP: 8554
