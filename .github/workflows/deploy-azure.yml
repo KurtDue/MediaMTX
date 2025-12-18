@@ -1,0 +1,90 @@
+name: Deploy MediaMTX to Azure
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  RESOURCE_GROUP: StoreOne
+  CONTAINER_NAME: mediamtx-server
+  ACR_NAME: garbagecan
+  IMAGE_NAME: mediamtx
+  LOCATION: northeurope
+  DNS_LABEL: mediamtx-storeone
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Build and push to ACR
+      run: |
+        az acr build --registry ${{ env.ACR_NAME }} \
+          --image ${{ env.IMAGE_NAME }}:latest \
+          --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+          --file Dockerfile .
+    
+    - name: Delete existing container (if exists)
+      continue-on-error: true
+      run: |
+        az container delete \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.CONTAINER_NAME }} \
+          --yes
+    
+    - name: Wait for deletion
+      run: sleep 30
+    
+    - name: Deploy to Azure Container Instances
+      run: |
+        az container create \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.CONTAINER_NAME }} \
+          --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest \
+          --acr-identity [system] \
+          --assign-identity \
+          --dns-name-label ${{ env.DNS_LABEL }} \
+          --ports 8554 1935 8888 8889 8890 9997 \
+          --protocol TCP \
+          --cpu 2 \
+          --memory 4 \
+          --restart-policy Always \
+          --os-type Linux \
+          --location ${{ env.LOCATION }}
+    
+    - name: Get deployment info
+      id: container-info
+      run: |
+        FQDN=$(az container show \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.CONTAINER_NAME }} \
+          --query ipAddress.fqdn -o tsv)
+        IP=$(az container show \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.CONTAINER_NAME }} \
+          --query ipAddress.ip -o tsv)
+        echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
+        echo "ip=$IP" >> $GITHUB_OUTPUT
+    
+    - name: Display deployment info
+      run: |
+        echo "🎉 Deployment Successful!"
+        echo "FQDN: ${{ steps.container-info.outputs.fqdn }}"
+        echo "IP: ${{ steps.container-info.outputs.ip }}"
+        echo ""
+        echo "📡 Stream URLs:"
+        echo "  SRT:    srt://${{ steps.container-info.outputs.fqdn }}:8890?streamid=live"
+        echo "  RTSP:   rtsp://${{ steps.container-info.outputs.fqdn }}:8554/live"
+        echo "  RTMP:   rtmp://${{ steps.container-info.outputs.fqdn }}:1935/live"
+        echo "  HLS:    http://${{ steps.container-info.outputs.fqdn }}:8888/live/index.m3u8"
+        echo "  WebRTC: http://${{ steps.container-info.outputs.fqdn }}:8889/live"
+        echo "  API:    http://${{ steps.container-info.outputs.fqdn }}:9997"

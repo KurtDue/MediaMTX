@@ -1,0 +1,197 @@
+# Example HTML page for testing stream playback
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaMTX Stream Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .player {
+            width: 100%;
+            max-width: 100%;
+            background: #000;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        video {
+            width: 100%;
+            height: auto;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        input {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📹 MediaMTX Stream Player</h1>
+        
+        <div class="info">
+            <h3>Stream URL</h3>
+            <p>Enter the HLS stream URL from your MediaMTX server:</p>
+            <code>http://your-server:8888/live/index.m3u8</code>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="streamUrl" placeholder="http://your-server:8888/live/index.m3u8">
+            <button onclick="loadStream()">Load Stream</button>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="player">
+            <video id="video" controls autoplay muted></video>
+        </div>
+
+        <div class="info">
+            <h3>Quick Links (replace 'your-server' with actual server address):</h3>
+            <ul>
+                <li><strong>HLS:</strong> http://your-server:8888/live/index.m3u8</li>
+                <li><strong>API:</strong> http://your-server:9997/v3/paths/list</li>
+                <li><strong>Metrics:</strong> http://your-server:9998/metrics</li>
+            </ul>
+            
+            <h3>Publishing from RTSPconvertTest:</h3>
+            <p>Use this RTSP URL: <code>rtsp://your-server:8554/live</code></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        const video = document.getElementById('video');
+        const streamUrlInput = document.getElementById('streamUrl');
+        const statusDiv = document.getElementById('status');
+        let hls;
+
+        function showStatus(message, isError = false) {
+            statusDiv.className = 'status ' + (isError ? 'error' : 'success');
+            statusDiv.textContent = message;
+        }
+
+        function loadStream() {
+            const streamUrl = streamUrlInput.value.trim();
+            
+            if (!streamUrl) {
+                showStatus('Please enter a stream URL', true);
+                return;
+            }
+
+            // Destroy existing HLS instance
+            if (hls) {
+                hls.destroy();
+            }
+
+            showStatus('Loading stream...');
+
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                });
+
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    showStatus('Stream loaded successfully! Playing...');
+                    video.play().catch(e => {
+                        showStatus('Loaded, but autoplay blocked. Click play button.', false);
+                    });
+                });
+
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    if (data.fatal) {
+                        showStatus('Error: ' + data.type + ' - ' + data.details, true);
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                showStatus('Network error. Check if server is reachable.', true);
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                showStatus('Media error. Trying to recover...', true);
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                showStatus('Fatal error. Reload the page.', true);
+                                break;
+                        }
+                    }
+                });
+
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Safari native HLS support
+                video.src = streamUrl;
+                video.addEventListener('loadedmetadata', function() {
+                    showStatus('Stream loaded successfully!');
+                });
+                video.addEventListener('error', function() {
+                    showStatus('Error loading stream. Check URL and server.', true);
+                });
+            } else {
+                showStatus('HLS is not supported in this browser', true);
+            }
+        }
+
+        // Auto-load if URL is in query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoUrl = urlParams.get('url');
+        if (autoUrl) {
+            streamUrlInput.value = autoUrl;
+            loadStream();
+        }
+    </script>
+</body>
+</html>

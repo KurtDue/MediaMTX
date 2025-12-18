@@ -1,0 +1,27 @@
+# .gitignore for MediaMTX Azure deployment
+
+# Azure
+*.parameters.local.json
+.azure/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Certificates (if you generate any)
+*.key
+*.crt
+*.pem
