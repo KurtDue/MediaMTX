@@ -1,32 +1,23 @@
-###############################################
-# Core Protocol Settings
-###############################################
-# Disable pulling/reading unused protocols to save resources
+# Minimal MediaMTX Configuration
+# Listen for SRT, output RTSP and HLS
+
+# Logging
+logLevel: info
+
+# Protocols
 rtsp: yes
 rtspAddress: :8554
 
 hls: yes
 hlsAddress: :8888
 
-rtmp: no
-webrtc: no
-
-# Logging
-logLevel: info
-
-###############################################
-# SRT Configuration (The Listener)
-###############################################
 srt: yes
 srtAddress: :8890
 
-# GLOBAL PASSPHRASE
-# This enforces AES encryption. The bridge must provide this exact password.
+# Disable unused protocols
+rtmp: no
+webrtc: no
 
-
-###############################################
-# Path Configurations
-###############################################
+# Accept any stream path
 paths:
-  # 'all' allows any stream name to be published (e.g., obs_final)
   all:
