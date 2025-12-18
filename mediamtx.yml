@@ -1,79 +1,32 @@
-# MediaMTX Configuration for Azure Deployment
-
-# General settings
-logLevel: info
-logDestinations: [stdout]
-logFile: ""
-
-# API server
-api: yes
-apiAddress: :9997
-
-# Metrics
-metrics: yes
-metricsAddress: :9998
-
-# RTSP server
+###############################################
+# Core Protocol Settings
+###############################################
+# Disable pulling/reading unused protocols to save resources
 rtsp: yes
-protocols: [tcp, udp]
 rtspAddress: :8554
-rtspsAddress: :8322
-rtpAddress: :8000
-rtcpAddress: :8001
 
-# RTMP server
-rtmp: yes
-rtmpAddress: :1935
-rtmpsAddress: :1936
-
-# HLS server
 hls: yes
 hlsAddress: :8888
-hlsServerKey: server.key
-hlsServerCert: server.crt
-hlsAlwaysRemux: no
-hlsVariant: mpegts
-hlsSegmentCount: 7
-hlsSegmentDuration: 1s
-hlsPartDuration: 200ms
-hlsSegmentMaxSize: 50M
 
-# WebRTC server
-webrtc: yes
-webrtcAddress: :8889
-webrtcServerKey: server.key
-webrtcServerCert: server.crt
-webrtcAllowOrigin: "*"
-webrtcICEServers2: []
+rtmp: no
+webrtc: no
 
-# SRT server
+# Logging
+logLevel: info
+
+###############################################
+# SRT Configuration (The Listener)
+###############################################
 srt: yes
 srtAddress: :8890
 
-# Path configurations
+# GLOBAL PASSPHRASE
+# This enforces AES encryption. The bridge must provide this exact password.
+
+
+###############################################
+# Path Configurations
+###############################################
 paths:
-  # Default path for all streams
-  all_others:
-    # Allow reading and publishing
-    source: publisher
-    sourceOnDemand: no
-    
-  # Example: Stream from your RTSPconvertTest project
-  live:
-    source: publisher
-    sourceOnDemand: no
-    # Allow cross-origin for web playback
-    runOnReady: ""
-    runOnReadyRestart: no
-    
-  # Camera stream example
-  camera:
-    source: publisher
-    sourceOnDemand: no
-    
-  # You can add more specific paths as needed
-  stream1:
-    source: publisher
-    
-  stream2:
-    source: publisher
+  # 'all' allows any stream name to be published (e.g., obs_final)
+  all:
